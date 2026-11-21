@@ -1,0 +1,32 @@
+{
+  "title": "Corporativo e institucional",
+  "projects": [
+    {
+      "title": "Grammer — Manual Banco Captain Chair",
+      "cover": "",
+      "period": "03/06/2024 → 16/09/2024",
+      "roles": ["Produtor Audiovisual", "Editor de vídeo"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "Podcast Assino Embaixo e vídeos institucionais — D4Sign",
+      "cover": "",
+      "period": "01/05/2024 → 28/06/2024",
+      "roles": ["Produtor Audiovisual", "Assistente de produção"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "Summit DPFL 2023 — Sede do Google",
+      "cover": "",
+      "period": "23/09/2023",
+      "roles": ["Produtor Audiovisual"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+# Configuração do Decap CMS (painel em /admin).
+# Documentação: https://decapcms.org/docs/configuration-options/
+
+backend:
+  name: github
+  repo: HenriqueBall/portfolio   # TODO Fase 2: trocar pelo repositório real
+  branch: main
+  base_url: https://URL-DO-WORKER       # TODO Fase 2: URL do proxy OAuth na Cloudflare
+  commit_messages:
+    create: 'Cria {{collection}} “{{slug}}”'
+    update: 'Atualiza {{collection}} “{{slug}}”'
+    delete: 'Remove {{collection}} “{{slug}}”'
+    uploadMedia: 'Envia imagem “{{path}}”'
+    deleteMedia: 'Remove imagem “{{path}}”'
+
+# Permite testar o painel localmente com "npx decap-server" (ver README).
+local_backend: true
+
+locale: pt
+
+media_folder: static/img/uploads
+public_folder: /img/uploads
+
+collections:
+  # ---------------------------------------------------------------- Perfil
+  - name: perfil
+    label: Perfil
+    editor: { preview: false }
+    files:
+      - name: profile
+        label: Apresentação e contatos
+        file: content/profile.json
+        fields:
+          - { label: Nome, name: name, widget: string }
+          - { label: Cargo, name: role, widget: string, hint: 'Ex.: Coordenador de Produção' }
+          - { label: Especialidades, name: specialties, widget: string, required: false, hint: 'Linha curta abaixo do nome' }
+          - { label: Bio, name: bio, widget: text, hint: 'Deixe uma linha em branco para separar parágrafos.' }
+          - label: Destaques
+            name: highlights
+            widget: list
+            required: false
+            max: 4
+            summary: '{{fields.value}} — {{fields.label}}'
+            fields:
+              - { label: Número ou destaque, name: value, widget: string, hint: 'Ex.: 10+ anos' }
+              - { label: Texto de apoio, name: label, widget: string, hint: 'Ex.: em produção audiovisual' }
+          - { label: LinkedIn (URL), name: linkedin, widget: string, required: false }
+          - { label: E-mail, name: email, widget: string, required: false }
+          - { label: Foto (quadrada), name: photo, widget: image, required: false, choose_url: false }
+          - { label: Banner de capa (horizontal), name: banner, widget: image, required: false, choose_url: false }
+
+  # ------------------------------------------------------------ Categorias
+  # As 4 categorias são fixas: não é possível criar ou apagar categorias pelo painel,
+  # apenas editar o título e a lista de projetos de cada uma.
+  - name: categorias
+    label: Categorias do portfólio
+    editor: { preview: false }
+    files:
+      - name: educacionais
+        label: Conteúdos educacionais
+        file: content/categories/educacionais.json
+        fields: &category_fields
+          - { label: Título da seção, name: title, widget: string }
+          - label: Projetos
+            name: projects
+            widget: list
+            summary: '{{fields.title}}'
+            hint: 'A ordem da lista é a ordem do carrossel. Arraste para reordenar.'
+            fields:
+              - { label: Título, name: title, widget: string }
+              - { label: Capa (imagem 16:9, até ~500 KB), name: cover, widget: image, required: false, choose_url: false }
+              - { label: Período, name: period, widget: string, required: false, hint: 'Ex.: 03/06/2024 → 16/09/2024' }
+              - label: Funções
+                name: roles
+                widget: list
+                required: false
+                field: { label: Função, name: role, widget: string }
+              - { label: Descrição curta, name: description, widget: text, required: false, hint: '1 a 3 frases. Aparece abaixo da capa e no modal.' }
+              - { label: Aviso (opcional), name: notice, widget: text, required: false, hint: 'Use quando o conteúdo não for público. Ex.: exclusivo para alunos.' }
+              - label: Vídeos do YouTube
+                name: videos
+                widget: list
+                required: false
+                summary: '{{fields.label}}'
+                hint: 'O primeiro vídeo abre automaticamente no modal.'
+                fields:
+                  - { label: Nome do vídeo, name: label, widget: string, required: false, hint: 'Ex.: Episódio 1' }
+                  - { label: Link do YouTube, name: url, widget: string, pattern: ['^https://(www\.|m\.)?(youtube\.com|youtu\.be)/', 'Cole um link do YouTube começando com https://'] }
+      - name: corporativo
+        label: Corporativo e institucional
+        file: content/categories/corporativo.json
+        fields: *category_fields
+      - name: cultura
+        label: Cultura e artes
+        file: content/categories/cultura.json
+        fields: *category_fields
+      - name: autorais
+        label: Projetos autorais e independentes
+        file: content/categories/autorais.json
+        fields: *category_fields

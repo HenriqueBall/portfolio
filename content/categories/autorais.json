@@ -1,0 +1,23 @@
+{
+  "title": "Projetos autorais e independentes",
+  "projects": [
+    {
+      "title": "Curta-metragem Reavivando",
+      "cover": "",
+      "period": "01/01/2021 → 12/02/2021",
+      "roles": ["Diretor Geral", "Editor de vídeo", "Diretor de Produção", "Artista (ator, palhaço, aerealista e dançarino)", "Produtor Audiovisual"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "Curta-metragem independente Dicotomia",
+      "cover": "",
+      "period": "01/06/2016 → 01/08/2016",
+      "roles": ["Assistente de produção", "Produtor Audiovisual"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    }
+  ]
+}

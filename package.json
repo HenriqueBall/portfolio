@@ -1,0 +1,15 @@
+{
+  "name": "portfolio-henrique-balleiras",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfólio de Henrique Balleiras — site estático gerado a partir de JSON editado pelo Decap CMS.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "serve": "node serve.js",
+    "dev": "node build.js && node serve.js"
+  }
+}

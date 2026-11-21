@@ -1,0 +1,50 @@
+{
+  "title": "Cultura e artes",
+  "projects": [
+    {
+      "title": "CORPO III — Encontro de Dança de Bragança Paulista (SP)",
+      "cover": "",
+      "period": "[Período a preencher]",
+      "roles": ["Produtor Audiovisual", "Técnico em Transmissões ao Vivo"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "Conversas e Práticas Inspiradoras — Entrando em Cena",
+      "cover": "",
+      "period": "[Período a preencher]",
+      "roles": ["Técnico em Transmissões ao Vivo", "[Demais funções a preencher]"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "Projeto Bastidores",
+      "cover": "",
+      "period": "[Período a preencher]",
+      "roles": ["Técnico em Transmissões ao Vivo", "[Demais funções a preencher]"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "As Histórias e a Praça",
+      "cover": "",
+      "period": "[Período a preencher]",
+      "roles": ["Técnico em Transmissões ao Vivo", "Produtor Audiovisual"],
+      "description": "Transmissão do evento de contação de histórias da Juliana Bueno.",
+      "notice": "",
+      "videos": []
+    },
+    {
+      "title": "Se Esta Rua Fosse Sua",
+      "cover": "",
+      "period": "[Período a preencher]",
+      "roles": ["Técnico em Transmissões ao Vivo", "Produtor Audiovisual"],
+      "description": "[Descrição a preencher]",
+      "notice": "",
+      "videos": []
+    }
+  ]
+}
