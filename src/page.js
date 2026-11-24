@@ -195,6 +195,9 @@ ${categories.map(renderCategory).join('\n')}
       ${profile.linkedin ? `<a class="btn btn--outline-inverse" href="${esc(profile.linkedin)}" rel="noopener">LinkedIn</a>` : ''}
     </div>
   </div>
+  <div class="container site-footer__credits">
+    <p>© 2026 · <a href="https://www.linkedin.com/in/felipesardim/" rel="noopener">by Felipe Sardim</a> · São Paulo</p>
+  </div>
 </footer>
 ${renderDialog()}
 <script type="application/json" id="projects-data">${projectsJson(categories)}</script>
