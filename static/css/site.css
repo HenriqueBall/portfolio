@@ -220,3 +220,11 @@ main:focus { outline: none; }
   gap: 24px; padding-top: 56px; padding-bottom: 56px;
 }
 .site-footer h2 { font-size: 28px; margin-bottom: 8px; }
+/* Fundo preto: contorno de foco branco para continuar visível. */
+.site-footer :focus-visible { outline-color: var(--color-inverse-text); }
+.site-footer__credits {
+  padding-top: 20px; padding-bottom: 20px;
+  border-top: 1px solid #333333;
+  font-size: 14px;
+}
+.site-footer__credits a { color: var(--color-inverse-text); }
