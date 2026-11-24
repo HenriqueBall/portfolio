@@ -36,4 +36,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Não encontrado');
   }
-}).listen(PORT, () => console.log(`Servindo _site/ em http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`Servindo _site/ em http://localhost:${PORT}`)); 
