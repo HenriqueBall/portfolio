@@ -3,9 +3,10 @@
 
 backend:
   name: github
-  repo: HenriqueBall/portfolio   # TODO Fase 2: trocar pelo repositório real
+  repo: HenriqueBall/portfolio
+  auth_scope: public_repo              # repositório público: não precisa de acesso a repositórios privados
   branch: main
-  base_url: https://URL-DO-WORKER       # TODO Fase 2: URL do proxy OAuth na Cloudflare
+  base_url: https://decap-oauth-portfolio.felipesardim.workers.dev/
   commit_messages:
     create: 'Cria {{collection}} “{{slug}}”'
     update: 'Atualiza {{collection}} “{{slug}}”'
