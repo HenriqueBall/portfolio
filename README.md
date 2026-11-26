@@ -1,20 +1,23 @@
 # Portfólio — Henrique Balleiras
 
-Site-portfólio de página única: apresentação, quatro categorias de projetos em carrossel e vídeo do YouTube abrindo em modal. O conteúdo é editado pelo Henrique num painel web (`/admin`, Decap CMS) e o site é publicado automaticamente no GitHub Pages.
+Site-portfólio de página única: apresentação, quatro categorias de projetos em carrossel e vídeo do YouTube abrindo em modal. O conteúdo é editado pelo Henrique num painel web (`/admin`, Decap CMS) e o site é publicado automaticamente no GitHub Pages, no domínio próprio.
 
-- **Status:** V1 — Fase 1 concluída e publicada. Fase 2 (login do painel) montada nas contas do Felipe: Worker publicado e `config.yml` apontando para ele; falta testar com a conta do Henrique e migrar. Pendente: Fase 3 (domínio).
+> **Vai só editar textos, capas ou projetos?** Comece pelo [Guia de uso (docs/editar-portfolio.md)](docs/editar-portfolio.md). Este README é o manual técnico e de operação.
+
+- **Status:** V1 no ar. Site, painel de edição e domínio próprio funcionando.
+- **Site:** https://portfolio.henriqueballeiras.com.br
+- **Painel:** https://portfolio.henriqueballeiras.com.br/admin/
 - **Repositório:** https://github.com/HenriqueBall/portfolio
-- **Site (provisório):** https://henriqueball.github.io/portfolio/  ·  **Painel:** https://henriqueball.github.io/portfolio/admin/
+- **Dono do conteúdo e das contas:** Henrique Balleiras
 - **Responsável técnico:** Felipe Sardim
-- **Dono do conteúdo:** Henrique Balleiras
 
 ---
 
 ## 1. Arquitetura
 
 ```
-Henrique (navegador) ──► site/admin  (Decap CMS, carregado da CDN)
-                              │  "Entrar com GitHub"
+Henrique (navegador) ──► portfolio.henriqueballeiras.com.br/admin  (Decap CMS, carregado da CDN)
+                              │  "Login with GitHub"
                               ▼
                    Cloudflare Worker (proxy OAuth, plano grátis)
                               │  token de acesso
@@ -24,7 +27,7 @@ Henrique (navegador) ──► site/admin  (Decap CMS, carregado da CDN)
        static/img/uploads/                              ▼
                                                GitHub Pages (_site/)
                                                         ▲
-                                    DNS Registro.br (CNAME do subdomínio)
+                              DNS na Hostinger (CNAME portfolio → henriqueball.github.io)
 ```
 
 **Como uma edição chega ao ar:** o Henrique salva no `/admin` → o Decap grava um commit no repositório (JSON e/ou imagem) → o workflow `Publicar site` roda o build → o GitHub Pages publica. Leva de 1 a 2 minutos.
@@ -39,6 +42,7 @@ Henrique (navegador) ──► site/admin  (Decap CMS, carregado da CDN)
 | Uma página, categorias fixas | Escopo da V1 | Criar uma categoria exige mudança de código (ver §6.3) |
 | `<dialog>` nativo para o modal | Foco preso, ESC e fundo inerte nativos do navegador | Navegadores muito antigos (anteriores a 2022) não abrem o modal |
 | YouTube via `youtube-nocookie.com`, carregado só ao abrir o modal | Página leve; sem cookies de rastreamento até o visitante dar play | — |
+| Proxy OAuth próprio (`oauth-worker/worker.js`) | Cerca de 80 linhas auditáveis, sem dependência de terceiros; escopo travado em `public_repo` | Uma peça a mais para manter (Cloudflare) |
 
 ## 2. Dependências
 
@@ -46,18 +50,20 @@ Henrique (navegador) ──► site/admin  (Decap CMS, carregado da CDN)
 |---|---|---|
 | Node.js ≥ 20 | Rodar `build.js` (local e no GitHub Actions) | Grátis |
 | Decap CMS 3.x (CDN unpkg) | Painel `/admin` | Grátis (MIT) |
-| GitHub (conta do Henrique) | Repositório, Actions, Pages, login do painel | Grátis (repositório público) |
+| GitHub (conta `HenriqueBall`) | Repositório, Actions, Pages, login do painel | Grátis (repositório público) |
 | Cloudflare Workers | Proxy OAuth do login do painel (`oauth-worker/worker.js`) | Grátis |
-| Domínio no Registro.br | Endereço `portfolio.<dominio>.com.br` (opcional) | Já pago pelo Henrique |
+| Domínio `henriqueballeiras.com.br` na Hostinger | Endereço do site e DNS | Renovação anual do domínio |
 
 Não há `node_modules` nem `package-lock.json`: o projeto não usa pacotes npm.
 
 ## 3. Estrutura de pastas
 
 ```
+├─ README.md                 Este manual (técnico e de operação)
+├─ docs/editar-portfolio.md  Guia de uso para o Henrique (painel, domínio, ReviverTaro)
 ├─ build.js                  Lê content/, gera _site/index.html e copia static/
 ├─ serve.js                  Servidor local para revisar _site/
-├─ src/page.js               Template HTML da página (cabeçalho, apresentação, carrosséis, modal)
+├─ src/page.js               Template HTML da página (cabeçalho, apresentação, carrosséis, modal, rodapé)
 ├─ content/                  ← CONTEÚDO (editado pelo CMS)
 │  ├─ profile.json           Nome, cargo, bio, destaques, contatos, foto, banner
 │  └─ categories/
@@ -71,9 +77,10 @@ Não há `node_modules` nem `package-lock.json`: o projeto não usa pacotes npm.
 │  ├─ img/uploads/           Imagens enviadas pelo CMS
 │  └─ admin/
 │     ├─ index.html          Carrega o Decap CMS
-│     └─ config.yml          Campos do painel
+│     └─ config.yml          Campos do painel e conexão com o GitHub/Worker
 ├─ .github/workflows/deploy.yml   Build + publicação no GitHub Pages
 ├─ oauth-worker/worker.js    Proxy OAuth do login do painel (roda na Cloudflare, não no site)
+├─ CNAME                     Criado pelo GitHub quando o Pages estava em modo branch; sem efeito no modo Actions (ver §5.1)
 └─ _site/                    Saída do build (não versionada)
 ```
 
@@ -109,7 +116,7 @@ npm run dev
 
 ### Testar o painel `/admin` localmente (opcional, precisa de internet)
 
-O `config.yml` tem `local_backend: true`, que permite editar os arquivos locais sem login:
+O `config.yml` tem `local_backend: true`, que permite editar os arquivos locais sem login (só vale em `localhost`):
 
 ```bash
 npx decap-server     # terminal 1 (porta 8081)
@@ -119,78 +126,111 @@ npm run dev          # terminal 2
 
 Depois de editar no painel local, rode `node build.js` de novo para ver o resultado.
 
-## 5. Publicação
+## 5. Operação
 
-### Fase 2 — Login do painel (`/admin`)
+Esta seção registra **como o site está configurado hoje** fora do código (GitHub, Hostinger, Cloudflare). O passo a passo tela a tela, para quem não é da área técnica, está no [guia de uso](docs/editar-portfolio.md).
 
-O login usa três peças: **OAuth App** no GitHub (identifica o painel), **Worker** na Cloudflare (guarda o segredo e troca o código pelo token; código em `oauth-worker/worker.js`) e o **`config.yml`** apontando para o Worker.
+### 5.1 GitHub Pages
 
-> Plano: montar primeiro com o OAuth App e o Worker nas contas do Felipe, validar, e depois migrar para as contas do Henrique (ver "Migração" abaixo).
+| Configuração | Valor | Onde |
+|---|---|---|
+| Source | **GitHub Actions** | Repositório → Settings → Pages |
+| Custom domain | `portfolio.henriqueballeiras.com.br` | Repositório → Settings → Pages |
+| Enforce HTTPS | Ligado | Repositório → Settings → Pages |
+| Domínio verificado | `henriqueballeiras.com.br` | Conta `HenriqueBall` → Settings → Pages → Verified domains |
 
-**1. Criar o Worker** (Cloudflare → *Workers & Pages* → *Create* → *Create Worker*)
-- Nome: `decap-oauth-portfolio` → *Deploy* (com o código de exemplo mesmo).
-- *Edit code* → apagar tudo, colar o conteúdo de `oauth-worker/worker.js` → *Deploy*.
-- Anotar a URL: `https://decap-oauth-portfolio.<conta>.workers.dev` (hoje: `https://decap-oauth-portfolio.felipesardim.workers.dev`). Ao abrir no navegador deve aparecer "Proxy OAuth do Decap CMS: OK".
+> **Atenção:** se o Source voltar para *Deploy from a branch*, o GitHub ignora o workflow e publica a raiz do repositório. Como lá não há `index.html` (ele só existe em `_site/`), o site passa a mostrar **este README** formatado. Correção: Source → GitHub Actions e rodar de novo o último workflow em *Actions*.
 
-**2. Criar o OAuth App** (GitHub → *Settings* → *Developer settings* → *OAuth Apps* → *New OAuth App*)
+O arquivo `CNAME` na raiz foi criado pelo GitHub numa fase em que o Pages estava em modo branch. No modo Actions o domínio vem da configuração acima, e o arquivo não tem efeito. Pode ser mantido ou removido.
+
+### 5.2 DNS (Hostinger)
+
+Painel: [hpanel.hostinger.com](https://hpanel.hostinger.com) → Domínios → `henriqueballeiras.com.br` → DNS / Nameservers. Os nameservers são os da Hostinger.
+
+Registros criados para os sites (os demais são do e-mail e **não devem ser alterados**: MX, TXT de SPF e DKIM):
+
+| Tipo | Nome | Aponta para | Para quê |
+|---|---|---|---|
+| TXT | `_github-pages-challenge-HenriqueBall` | código gerado pelo GitHub | Verificação do domínio na conta do GitHub |
+| CNAME | `portfolio` | `henriqueball.github.io` | Este site |
+| CNAME | `revivertaro` | `henriqueball.github.io` | Site ReviverTaro (repositório `HenriqueBall/ReviverTaro`, Pages em modo *Deploy from a branch*) |
+
+Usar subdomínios (CNAME) em vez da raiz do domínio mantém os registros do e-mail intocados.
+
+### 5.3 Login do painel
+
+O login usa três peças que precisam estar coerentes entre si:
+
+```
+config.yml (base_url) ──► Worker na Cloudflare ──► OAuth App no GitHub
+                          (ALLOWED_ORIGINS,        (callback = Worker/callback)
+                           Client ID e Secret)
+```
+
+**`static/admin/config.yml` → `backend`**
 
 | Campo | Valor |
 |---|---|
-| Application name | Portfólio Henrique — painel |
-| Homepage URL | `https://henriqueball.github.io/portfolio/` |
-| Authorization callback URL | `https://decap-oauth-portfolio.<conta>.workers.dev/callback` |
+| `name` | `github` |
+| `repo` | `HenriqueBall/portfolio` |
+| `branch` | `main` |
+| `auth_scope` | `public_repo` (não dá acesso a repositórios privados de quem entra) |
+| `base_url` | URL do Worker, sem barra no final |
 
-Depois de criar: copiar o **Client ID** e clicar em *Generate a new client secret* (o segredo aparece uma única vez).
+**Worker (Cloudflare → Workers & Pages → `decap-oauth-portfolio` → Settings → Variables and Secrets)**
 
-**3. Configurar o Worker** (Worker → *Settings* → *Variables and Secrets* → *Add*)
-
-| Nome | Tipo | Valor |
+| Variável | Tipo | Valor |
 |---|---|---|
-| `GITHUB_CLIENT_ID` | Text | Client ID do passo 2 |
-| `GITHUB_CLIENT_SECRET` | **Secret** | Client Secret do passo 2 |
-| `ALLOWED_ORIGINS` | Text | `https://henriqueball.github.io` |
-| `GITHUB_SCOPE` | Text (opcional) | Não criar. Sem ela, o Worker usa `public_repo` |
+| `GITHUB_CLIENT_ID` | Text | Client ID do OAuth App |
+| `GITHUB_CLIENT_SECRET` | **Secret** | Client Secret do OAuth App (nunca no repositório) |
+| `ALLOWED_ORIGINS` | Text | `https://henriqueball.github.io,https://portfolio.henriqueballeiras.com.br` |
+| `GITHUB_SCOPE` | — | Não criar. Sem ela, o Worker usa `public_repo` |
 
-`ALLOWED_ORIGINS` é a trava de segurança: o token só é entregue a páginas nessas origens (só protocolo + domínio, sem `/portfolio`). Quando o domínio próprio entrar (Fase 3), acrescentar separado por vírgula.
+`ALLOWED_ORIGINS` é a trava de segurança: o token só é entregue a páginas nessas origens (protocolo + domínio, sem caminho, sem barra final, separadas por vírgula). Se o endereço do site não estiver na lista, o login trava em "Concluindo o login…".
 
-**4. Apontar o painel para o Worker**
-- Em `static/admin/config.yml`, trocar `base_url` pela URL do Worker. Os demais campos do `backend` já estão prontos: `repo: HenriqueBall/portfolio`, `branch: main`, `auth_scope: public_repo`.
-- Commit e push; aguardar o workflow "Publicar site" ficar verde.
+**OAuth App (GitHub → Settings → Developer settings → OAuth Apps)**
 
-**5. Testar**
-- Abrir `https://henriqueball.github.io/portfolio/admin/` → *Login with GitHub* → autorizar o app no popup.
-- Editar um projeto, publicar e conferir: commit novo no repositório, workflow verde, mudança no site em 1–2 min.
-- Repetir com a conta do Henrique (ele precisa autorizar o app no primeiro acesso).
+| Campo | Valor |
+|---|---|
+| Homepage URL | `https://portfolio.henriqueballeiras.com.br` |
+| Authorization callback URL | URL do Worker + `/callback` |
+| Enable Device Flow | Desmarcado |
+| Expire user access tokens | **Desmarcado**: o Decap não usa refresh token, e com expiração o painel passa a dar erro ao salvar no dia seguinte |
 
-> Quem tem permissão de escrita no repositório consegue entrar no painel. Para dar acesso, adicione como colaborador; para tirar, remova. O escopo pedido ao GitHub é `public_repo` (não dá acesso a repositórios privados de quem entra).
+**Acesso:** quem tem permissão de escrita no repositório entra no painel. Dar acesso: repositório → Settings → Collaborators → Add people. Tirar: Remove.
 
-**Migração para as contas do Henrique**
-1. Henrique cria conta na Cloudflare e repete o passo 1 (mesmo código).
-2. Henrique cria um OAuth App na conta dele (passo 2) com o callback do **novo** Worker.
-3. Configura as variáveis no novo Worker (passo 3).
-4. Trocar `base_url` no `config.yml` → commit → testar (passo 5).
-5. Só depois de testado: apagar o Worker e o OAuth App do Felipe (GitHub → OAuth App → *Delete application* também revoga os tokens emitidos por ele).
+### 5.4 Inventário de contas
 
-### Fase 3 — Domínio próprio (subdomínio, sem afetar o e-mail)
+| Peça | Onde | Dono |
+|---|---|---|
+| Repositório | [github.com/HenriqueBall/portfolio](https://github.com/HenriqueBall/portfolio) | Henrique (Felipe como colaborador) |
+| GitHub Pages + domínio verificado | Conta `HenriqueBall` | Henrique |
+| Worker `decap-oauth-portfolio` | Cloudflare | Felipe até a migração (§5.5); depois, Henrique |
+| OAuth App do painel | GitHub → Developer settings | Felipe até a migração (§5.5); depois, Henrique |
+| Domínio, DNS e e-mail | Hostinger | Henrique |
 
-1. **Onde editar o DNS:** confirmar onde o DNS do domínio é administrado. Se for o DNS do próprio Registro.br, edita-se lá. Se o provedor de e-mail pediu para trocar os servidores DNS, edita-se no painel do provedor.
-2. **Registro novo:** criar **um** registro, sem alterar os de e-mail (MX, SPF, DKIM):
+### 5.5 Migração ou troca de responsável
 
-   | Tipo | Nome | Valor |
-   |---|---|---|
-   | CNAME | `portfolio` | `henriqueball.github.io` |
+Para passar o login do painel para outra conta (por exemplo, das contas do Felipe para as do Henrique), sem tirar o site do ar:
 
-3. **No GitHub:** em *Settings → Pages → Custom domain*, informar `portfolio.<dominio>.com.br` (previsto: `portfolio.henriqueballeiras.com.br`). Como a publicação é feita pelo GitHub Actions, não é preciso criar arquivo `CNAME` no repositório. Depois, verificar o domínio na conta do Henrique (*Settings → Pages → Verified domains*) e ativar **Enforce HTTPS** quando o certificado for emitido. Pode levar algumas horas.
-4. **Ajustes finais:**
-   - OAuth App: trocar a Homepage URL pelo novo endereço. O callback continua o do Worker.
-   - Worker: acrescentar `https://portfolio.<dominio>.com.br` em `ALLOWED_ORIGINS`, separado por vírgula. Sem isso, o login no painel pelo domínio novo trava em "Concluindo o login…".
-   - Este README: atualizar os endereços do site e do painel no topo.
+1. **Worker novo:** na Cloudflare da nova conta, criar `decap-oauth-portfolio` e colar `oauth-worker/worker.js`. Ao abrir a URL, deve aparecer "Proxy OAuth do Decap CMS: OK".
+2. **OAuth App novo:** na conta GitHub nova, com o callback apontando para o **novo** Worker (§5.3). Gerar o Client Secret.
+3. **Variáveis:** cadastrar as três variáveis no novo Worker (§5.3) e fazer *Deploy*.
+4. **`base_url`:** trocar no `config.yml` pela URL do novo Worker, fazer commit e esperar o workflow ficar verde.
+5. **Teste:** entrar no painel (o GitHub pede para autorizar o app novo), editar, publicar, conferir, desfazer.
+6. **Só depois do teste:** apagar o Worker e o OAuth App antigos. Apagar o OAuth App também revoga os tokens que ele emitiu.
 
-A barra de endereço mostra `portfolio.<dominio>.com.br`. Não é redirecionamento: o GitHub serve o site diretamente nesse endereço. O endereço `*.github.io` passa a redirecionar para o domínio.
+Passo a passo detalhado, tela a tela: [guia de uso, Parte 4](docs/editar-portfolio.md#parte-4--trazer-o-login-do-painel-para-as-suas-contas-40-min).
+
+### 5.6 Custos
+
+Nenhum além da renovação anual do domínio na Hostinger. GitHub (repositório público, Actions, Pages) e Cloudflare Workers estão no plano gratuito, com folga para este site.
 
 ## 6. Manutenção
 
 ### 6.1 Edição de conteúdo (Henrique, pelo `/admin`)
+
+Tudo está no [guia de uso](docs/editar-portfolio.md#editar-o-portfólio). Resumo:
 
 - **Perfil:** nome, cargo, bio, destaques, contatos, foto e banner.
 - **Categorias:** editar o título da seção; incluir, remover, reordenar (arrastar) e editar projetos.
@@ -213,6 +253,10 @@ A barra de endereço mostra `portfolio.<dominio>.com.br`. Não é redirecionamen
 
 O `admin/index.html` carrega `decap-cms@^3.0.0`, ou seja, recebe correções da versão 3 automaticamente. Se um dia sair a versão 4, testar localmente antes de trocar a versão.
 
+### 6.5 Atualizar o Worker
+
+Se `oauth-worker/worker.js` mudar no repositório, a mudança **não** vai para a Cloudflare sozinha: abrir o Worker → *Edit code*, colar o arquivo novo e fazer *Deploy*. As variáveis não são afetadas.
+
 ## 7. Acessibilidade
 
 Meta da V1: **Lighthouse ≥ 95 em Acessibilidade, no mobile.** Como medir: Chrome → DevTools (F12) → aba *Lighthouse* → modo *Navigation*, dispositivo *Mobile*, categoria *Accessibility* → *Analyze page load*.
@@ -230,26 +274,29 @@ O Lighthouse só detecta parte dos problemas. Verificação manual:
 
 **Limitação conhecida:** quando o foco está dentro do player do YouTube, o ESC é capturado pelo próprio player. O visitante precisa sair do player com Tab ou usar o botão Fechar. É o comportamento padrão de iframes de terceiros.
 
-A partir da entrega ao Henrique, manter a acessibilidade do conteúdo editado (texto das capas, descrições) é responsabilidade dele. O código não bloqueia publicações.
+A partir da entrega ao Henrique, manter a acessibilidade do conteúdo editado (descrições, textos) é responsabilidade dele. O código não bloqueia publicações.
 
 ## 8. Pendências de conteúdo (Henrique)
 
-O build lista avisos e o site mostra os marcadores `[... a preencher]`. Faltam:
+O build lista avisos e o site mostra os marcadores `[... a preencher]` enquanto houver campos pendentes, como:
 
-- Períodos e descrições da maioria dos projetos
+- Períodos e descrições de projetos
 - Funções completas onde aparece `[Demais funções a preencher]`
-- Links dos vídeos do YouTube e capas de todos os projetos
+- Links dos vídeos do YouTube e capas
 - Foto e banner do perfil
-- Revisão do texto da bio (hoje é o texto do Notion)
 
 ## 9. Problemas comuns
 
 | Sintoma | Causa provável | Como resolver |
 |---|---|---|
-| Edição salva no painel não aparece no site | Build ainda rodando ou falhou | Aba *Actions* do repositório; erro de JSON aparece no log como `Falha ao ler content/...` |
-| `/admin` mostra erro de login | `base_url` errado, Worker fora do ar ou callback do OAuth App diferente | Conferir os passos 1 a 4 da Fase 2 |
-| Popup de login abre e fica parado em "Concluindo o login…" | Origem do site não está em `ALLOWED_ORIGINS` | Incluir a origem exata (ex.: `https://henriqueball.github.io`) no Worker |
-| Popup mostra "Sessão de login inválida ou expirada" | Login demorou mais de 10 min ou cookies bloqueados para `workers.dev` | Tentar de novo; liberar cookies do domínio do Worker |
+| Edição salva no painel não aparece no site | Build ainda rodando, falhou, ou cache do navegador | Aba *Actions*; recarregar com Ctrl + F5. Erro de JSON aparece no log como `Falha ao ler content/...` |
+| O site mostra o README em vez do portfólio | Pages em *Deploy from a branch* | Source → GitHub Actions e rodar de novo o workflow (§5.1) |
+| Login trava em "Concluindo o login…" | Origem do site fora de `ALLOWED_ORIGINS` | Incluir a origem exata no Worker (§5.3). Conferir com `location.origin` no console do `/admin` |
+| `/admin` mostra erro de login | `base_url` errado, Worker fora do ar ou callback do OAuth App diferente | Conferir as três peças (§5.3); abrir a URL do Worker deve mostrar "Proxy OAuth do Decap CMS: OK" |
+| Janela de login mostra "Sessão de login inválida ou expirada" | Login demorou mais de 10 min ou cookies bloqueados para `workers.dev` | Tentar de novo; liberar cookies do domínio do Worker |
+| Painel dá erro ao salvar, mesmo logado | Token revogado ou expirado | Avatar no painel → Log out → entrar de novo. Conferir se *Expire user access tokens* está desmarcado no OAuth App |
 | "Não tem permissão" no painel | Conta sem acesso de escrita ao repositório | Adicionar como colaboradora |
 | Vídeo não aparece no modal | Link não reconhecido | Usar o link de compartilhar do YouTube; o build mostra o aviso |
-| Site sem estilo em `usuario.github.io/portfolio` | — | Os caminhos são relativos; se acontecer, conferir se `css/` está em `_site/` |
+| Domínio não abre ou sem HTTPS | DNS propagando ou certificado em emissão | Esperar até 24 h; conferir o CNAME (§5.2) e o Enforce HTTPS (§5.1) |
+| E-mail parou de funcionar | Registro MX/SPF/DKIM alterado no DNS | Restaurar os registros do e-mail na Hostinger imediatamente |
+| Perdeu o Client Secret | Só aparece uma vez | OAuth App → Generate a new client secret → atualizar no Worker |
